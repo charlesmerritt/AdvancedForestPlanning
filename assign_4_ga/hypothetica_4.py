@@ -1,6 +1,7 @@
 import random
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 
 # Constants
 T = 11721
@@ -8,9 +9,9 @@ N_PERIODS = 8
 STAND_SIZE = 40
 STEP_SIZE = 5
 MIN_AGE = 35
-POPULATION_SIZE = 50
+POPULATION_SIZE = 1000
 GENERATIONS = 100
-MUTATION_RATE = 0.1
+MUTATION_RATE = 0.3
 TOURNAMENT_SIZE = 3
 NUM_ELITES = 1
 
@@ -221,18 +222,22 @@ def apply_elitism(population: list, new_population: list, num_elites: int = 1):
         new_population.append(sorted_population[i])
 
 
-# Main genetic algorithm loop
-def genetic_algorithm(target_volume: int) -> HarvestSchedule:
-    """Run the genetic algorithm to find the best harvest schedule."""
+def genetic_algorithm(target_volume: int):
+    """Run the genetic algorithm and track deviations."""
     population = initialize_population()
+    best_deviations = []  # List to store best deviations from T per generation
 
     for generation in range(GENERATIONS):
-        print(f"\nGeneration {generation + 1}")
+        print(f"\nGeneration {generation + 1}:")
 
         # Calculate fitness for each schedule
         for schedule in population:
-            if schedule.fitness_score is None:  # Calculate fitness only if it's not already set
-                schedule.fitness_score = calculate_fitness(schedule)
+            schedule.fitness_score = calculate_fitness(schedule)
+
+        # Get the best schedule's deviation
+        best_schedule = max(population, key=lambda schedule: schedule.fitness_score)
+        best_deviation = sum((best_schedule.volume_by_period[period] - T) ** 2 for period in range(N_PERIODS))
+        best_deviations.append(best_deviation)
 
         new_population = []
 
@@ -249,20 +254,14 @@ def genetic_algorithm(target_volume: int) -> HarvestSchedule:
 
         population = new_population
 
-    # Ensure all fitness scores are calculated before selecting the best schedule
-    for schedule in population:
-        if schedule.fitness_score is None:
-            schedule.fitness_score = calculate_fitness(schedule)
-
-    # Return the best schedule
-    return max(population, key=lambda schedule: schedule.fitness_score)
+    # Return the best schedule and the list of best deviations per generation
+    return best_schedule, best_deviations
 
 
 def main():
-    best_schedule = genetic_algorithm(T)
+    best_schedule, best_deviations = genetic_algorithm(T)
     print("Best Harvest Schedule:")
     print(best_schedule)
-
 
 if __name__ == "__main__":
     main()
