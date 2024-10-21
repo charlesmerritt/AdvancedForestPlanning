@@ -1,7 +1,5 @@
 import random
-import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 
 # Constants
 T = 11721
@@ -107,7 +105,6 @@ def calculate_fitness(schedule: HarvestSchedule) -> float:
     # Return fitness for feasible schedules
     return 1 / (1 + deviation_sum)
 
-
 # Genetic Algorithm subroutines: initialization, crossover, mutation, and selection
 # Greedy volume-based initialization
 def initialize_population() -> list:
@@ -141,7 +138,6 @@ def initialize_population() -> list:
 
     return population
 
-
 # One-point crossover
 def crossover(parent1: HarvestSchedule, parent2: HarvestSchedule) -> HarvestSchedule:
     """Perform one-point crossover to create a child schedule, ensuring no stand is reused."""
@@ -163,7 +159,6 @@ def crossover(parent1: HarvestSchedule, parent2: HarvestSchedule) -> HarvestSche
                 child.add(stand, period)
 
     return child
-
 
 # Mutation: Swap only
 def mutate(schedule: HarvestSchedule) -> HarvestSchedule:
@@ -197,14 +192,13 @@ def mutate(schedule: HarvestSchedule) -> HarvestSchedule:
 
     return mutated_schedule
 
-
 # Tournament selection
 def select_parents(population: list) -> tuple:
     """Select two parents using tournament selection."""
 
     def tournament_selection():
         tournament = random.sample(population, TOURNAMENT_SIZE)
-        return max(tournament, key=lambda schedule: schedule.fitness_score)
+        return max(tournament, key=lambda schedule: schedule.objective_value)
 
     parent1 = tournament_selection()
     parent2 = tournament_selection()
@@ -217,7 +211,7 @@ def select_parents(population: list) -> tuple:
 # Elitism
 def apply_elitism(population: list, new_population: list, num_elites: int = 1):
     """Carry over the best individuals to the new population."""
-    sorted_population = sorted(population, key=lambda schedule: schedule.fitness_score, reverse=True)
+    sorted_population = sorted(population, key=lambda schedule: schedule.objective_value, reverse=True)
     for i in range(num_elites):
         new_population.append(sorted_population[i])
 
@@ -235,7 +229,7 @@ def genetic_algorithm(target_volume: int):
             schedule.fitness_score = calculate_fitness(schedule)
 
         # Get the best schedule's deviation
-        best_schedule = max(population, key=lambda schedule: schedule.fitness_score)
+        best_schedule = max(population, key=lambda schedule: schedule.objective_value)
         best_deviation = sum((best_schedule.volume_by_period[period] - T) ** 2 for period in range(N_PERIODS))
         best_deviations.append(best_deviation)
 
